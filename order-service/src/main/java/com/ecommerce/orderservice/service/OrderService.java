@@ -6,6 +6,7 @@ import com.ecommerce.orderservice.dto.OrderRequest;
 import com.ecommerce.orderservice.model.Order;
 import com.ecommerce.orderservice.model.OrderLineItems;
 import com.ecommerce.orderservice.repository.OrderRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,12 +20,16 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final InventoryClient inventoryClient; // Tiêm Feign Client vào
+    private final InventoryClient inventoryClient;
 
-    public void placeOrder(OrderRequest orderRequest) {
+    // Tên "inventory" phải trùng với config trong application.properties
+    @CircuitBreaker(name = "inventory", fallbackMethod = "placeOrderFallback")
+    public String placeOrder(OrderRequest orderRequest) {
+        // 1. 👇 KHAI BÁO ORDER Ở ĐÂY (Lỗi của bạn nằm ở việc thiếu dòng này)
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
 
+        // 2. Map dữ liệu từ DTO (Request) sang Entity (Database)
         List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsDtoList()
                 .stream()
                 .map(this::mapToDto)
@@ -32,18 +37,26 @@ public class OrderService {
 
         order.setOrderLineItemsList(orderLineItems);
 
-        // Gọi Inventory Service để kiểm tra từng món
-        // Nếu TẤT CẢ sản phẩm đều có trong kho (isInStock = true) thì mới cho đặt
+        // 3. Gọi Inventory Service để kiểm tra tồn kho
+        // Logic: Lấy tất cả skuCode trong đơn hàng, hỏi Inventory xem có hàng không
         boolean allProductsInStock = orderLineItems.stream()
                 .allMatch(item -> inventoryClient.checkStock(item.getSkuCode()));
 
+        // 4. Nếu có hàng thì lưu, không thì báo lỗi
         if(allProductsInStock) {
-            orderRepository.save(order);
+            orderRepository.save(order); // Lúc này biến 'order' đã được khai báo ở bước 1 nên không lỗi nữa
+            return "Đặt hàng thành công!";
         } else {
             throw new IllegalArgumentException("Sản phẩm không có trong kho, vui lòng thử lại sau");
         }
     }
 
+    // Hàm này chạy khi Inventory Service bị sập hoặc quá tải
+    public String placeOrderFallback(OrderRequest orderRequest, Throwable runtimeException) {
+        return "Rất tiếc! Hệ thống kho đang bận hoặc bảo trì. Vui lòng thử lại sau ít phút.";
+    }
+
+    // Hàm phụ để chuyển đổi dữ liệu
     private OrderLineItems mapToDto(OrderLineItemsDto orderLineItemsDto) {
         OrderLineItems orderLineItems = new OrderLineItems();
         orderLineItems.setPrice(orderLineItemsDto.getPrice());

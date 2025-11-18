@@ -16,7 +16,7 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public String placeOrder(@RequestBody OrderRequest orderRequest) {
-        orderService.placeOrder(orderRequest);
-        return "Đặt hàng thành công!";
+        // Gọi service và trả về chuỗi thông báo (Thành công hoặc Fallback)
+        return orderService.placeOrder(orderRequest);
     }
 }
