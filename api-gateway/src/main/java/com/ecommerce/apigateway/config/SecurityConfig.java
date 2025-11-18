@@ -35,6 +35,12 @@ public class SecurityConfig {
                         .pathMatchers("/api/order").authenticated() // Đặt hàng
                         .pathMatchers("/api/inventory/**").authenticated()
 
+                        // 👇 THÊM DÒNG NÀY: Cho phép xem review (GET) thoải mái
+                        .pathMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+
+                        // 👇 Bắt buộc đăng nhập khi viết review (POST)
+                        .pathMatchers(HttpMethod.POST, "/api/reviews").authenticated()
+
                         // Chặn tất cả các đường dẫn lạ khác
                         .anyExchange().authenticated()
                 )
