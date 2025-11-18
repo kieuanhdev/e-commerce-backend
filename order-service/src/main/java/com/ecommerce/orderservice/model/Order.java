@@ -15,9 +15,11 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String orderNumber; // Mã đơn hàng (VD: ORD-12345)
+    private String orderNumber;
 
-    // Một đơn hàng chứa nhiều món (Quan hệ 1-N)
+    // 👇 THÊM CỘT NÀY
+    private String userId;
+
     @OneToMany(cascade = CascadeType.ALL)
     private List<OrderLineItems> orderLineItemsList;
 }

@@ -17,29 +17,27 @@ public class SecurityConfig {
         serverHttpSecurity
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
-                        // Public endpoints
+                        // 1. Public Endpoints (Không cần đăng nhập)
                         .pathMatchers("/eureka/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/product/**").permitAll()
-
-                        // 👇 THÊM MỚI: Cho phép Đăng ký & Quên mật khẩu tự do
                         .pathMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/users/forgot-password").permitAll()
 
-                        // 👇 THÊM MỚI: Chỉ Admin được quản lý user (Xem/Xóa)
-                        .pathMatchers("/api/users/**").hasRole("ADMIN")
-
-                        // Quyền Admin cho Product (như cũ)
+                        // 2. Admin Endpoints (Cần Role ADMIN)
+                        .pathMatchers("/api/users/**").hasRole("ADMIN") // Quản lý User
+                        .pathMatchers("/api/order/all").hasRole("ADMIN") // Xem tất cả đơn
                         .pathMatchers(HttpMethod.POST, "/api/product/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.PUT, "/api/product/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("ADMIN")
 
-                        // Order & Inventory cần đăng nhập
-                        .pathMatchers("/api/order/**").authenticated()
+                        // 3. Authenticated Endpoints (Cần đăng nhập, Role gì cũng được)
+                        .pathMatchers("/api/order/my-orders").authenticated() // Xem đơn của mình
+                        .pathMatchers("/api/order").authenticated() // Đặt hàng
                         .pathMatchers("/api/inventory/**").authenticated()
 
+                        // Chặn tất cả các đường dẫn lạ khác
                         .anyExchange().authenticated()
                 )
-                // Kích hoạt Converter để đọc Role
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(makePermissionsConverter()))
                 );
@@ -47,7 +45,7 @@ public class SecurityConfig {
         return serverHttpSecurity.build();
     }
 
-    // Hàm cấu hình Converter
+    // Hàm này sẽ hết báo đỏ khi bạn cập nhật file KeycloakRoleConverter ở trên
     private ReactiveJwtAuthenticationConverter makePermissionsConverter() {
         ReactiveJwtAuthenticationConverter jwtAuthenticationConverter = new ReactiveJwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new KeycloakRoleConverter());

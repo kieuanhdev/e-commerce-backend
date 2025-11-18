@@ -8,6 +8,8 @@ import com.ecommerce.orderservice.model.OrderLineItems;
 import com.ecommerce.orderservice.repository.OrderRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +25,15 @@ public class OrderService {
     private final InventoryClient inventoryClient;
 
     // Tên "inventory" phải trùng với config trong application.properties
+    // 1. SỬA HÀM ĐẶT HÀNG (Lưu thêm userId)
     @CircuitBreaker(name = "inventory", fallbackMethod = "placeOrderFallback")
     public String placeOrder(OrderRequest orderRequest) {
-        // 1. 👇 KHAI BÁO ORDER Ở ĐÂY (Lỗi của bạn nằm ở việc thiếu dòng này)
+        // Lấy thông tin User từ Security Context (Token)
+        String userId = getCurrentUserId();
+
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
+        order.setUserId(userId); // 👇 LƯU USER ID VÀO DB
 
         // 2. Map dữ liệu từ DTO (Request) sang Entity (Database)
         List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsDtoList()
@@ -49,6 +55,23 @@ public class OrderService {
         } else {
             throw new IllegalArgumentException("Sản phẩm không có trong kho, vui lòng thử lại sau");
         }
+    }
+
+    // 2. HÀM XEM LỊCH SỬ (User xem đơn của mình)
+    public List<Order> getMyOrders() {
+        String userId = getCurrentUserId();
+        return orderRepository.findByUserId(userId);
+    }
+
+    // 3. HÀM QUẢN LÝ (Admin xem tất cả)
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    // Hàm phụ trợ để lấy ID từ Token
+    private String getCurrentUserId() {
+        Jwt jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return jwt.getSubject(); // Subject trong JWT chính là User ID (UUID)
     }
 
     // Hàm này chạy khi Inventory Service bị sập hoặc quá tải
