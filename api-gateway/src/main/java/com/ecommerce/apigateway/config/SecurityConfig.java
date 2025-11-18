@@ -17,17 +17,25 @@ public class SecurityConfig {
         serverHttpSecurity
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
-                        // 1. Cho phép xem (GET) sản phẩm thoải mái (Ai cũng xem được)
+                        // Public endpoints
                         .pathMatchers("/eureka/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/product/**").permitAll()
 
-                        // 2. QUYỀN ADMIN: Chỉ Admin mới được Thêm (POST), Sửa, Xóa sản phẩm
+                        // 👇 THÊM MỚI: Cho phép Đăng ký & Quên mật khẩu tự do
+                        .pathMatchers(HttpMethod.POST, "/api/users/register").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/users/forgot-password").permitAll()
+
+                        // 👇 THÊM MỚI: Chỉ Admin được quản lý user (Xem/Xóa)
+                        .pathMatchers("/api/users/**").hasRole("ADMIN")
+
+                        // Quyền Admin cho Product (như cũ)
                         .pathMatchers(HttpMethod.POST, "/api/product/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.PUT, "/api/product/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("ADMIN")
 
-                        // 3. Đặt hàng vẫn yêu cầu đăng nhập (User thường cũng được)
+                        // Order & Inventory cần đăng nhập
                         .pathMatchers("/api/order/**").authenticated()
+                        .pathMatchers("/api/inventory/**").authenticated()
 
                         .anyExchange().authenticated()
                 )
