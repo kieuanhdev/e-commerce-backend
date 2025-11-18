@@ -36,4 +36,13 @@ public class OrderController {
     public List<Order> getAllOrders() {
         return orderService.getAllOrders();
     }
+
+    // 👇 THÊM API NÀY: Để Review Service gọi sang hỏi
+    @GetMapping("/has-purchased")
+    @ResponseStatus(HttpStatus.OK)
+    public boolean hasPurchased(@RequestParam("userId") String userId,
+                                @RequestParam("skuCode") String skuCode) {
+        // Gọi qua Service chứ không gọi trực tiếp Repository
+        return orderService.hasPurchased(userId, skuCode);
+    }
 }

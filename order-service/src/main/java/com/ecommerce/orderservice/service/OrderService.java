@@ -87,4 +87,10 @@ public class OrderService {
         orderLineItems.setSkuCode(orderLineItemsDto.getSkuCode());
         return orderLineItems;
     }
+
+    // 👇 THÊM HÀM NÀY: Hàm nghiệp vụ kiểm tra mua hàng
+    public boolean hasPurchased(String userId, String skuCode) {
+        return orderRepository.existsByUserIdAndSkuCode(userId, skuCode);
+    }
+
 }
