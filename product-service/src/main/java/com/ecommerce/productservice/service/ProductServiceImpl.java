@@ -21,8 +21,14 @@ public class ProductServiceImpl implements ProductService {
     public void createProduct(ProductRequest productRequest) {
         Product product = Product.builder()
                 .name(productRequest.getName())
-                .description(productRequest.getDescription())
                 .price(productRequest.getPrice())
+                .isVisible(productRequest.getIsVisible() != null ? productRequest.getIsVisible() : true)
+                .quantity(productRequest.getQuantity() != null ? productRequest.getQuantity() : 0)
+                .lowStockThreshold(productRequest.getLowStockThreshold() != null ? productRequest.getLowStockThreshold() : 10)
+                .imageUrl(productRequest.getImageUrl())
+                .shortDescription(productRequest.getShortDescription())
+                .longDescription(productRequest.getLongDescription())
+                .categoryId(productRequest.getCategoryId())
                 .build();
 
         productRepository.save(product);
@@ -37,27 +43,34 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponse getProductById(Long id) {
+    public ProductResponse getProductById(String id) { // Đổi Long thành String
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found id: " + id));
         return mapToProductResponse(product);
     }
 
     @Override
-    public ProductResponse updateProduct(Long id, ProductRequest request) {
+    public ProductResponse updateProduct(String id, ProductRequest request) { // Đổi Long thành String
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found id: " + id));
 
+        // Cập nhật tất cả các trường mới
         product.setName(request.getName());
-        product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
+        product.setIsVisible(request.getIsVisible());
+        product.setQuantity(request.getQuantity());
+        product.setLowStockThreshold(request.getLowStockThreshold());
+        product.setImageUrl(request.getImageUrl());
+        product.setShortDescription(request.getShortDescription());
+        product.setLongDescription(request.getLongDescription());
+        product.setCategoryId(request.getCategoryId());
 
         productRepository.save(product);
         return mapToProductResponse(product);
     }
 
     @Override
-    public void deleteProduct(Long id) {
+    public void deleteProduct(String id) { // Đổi Long thành String
         if (!productRepository.existsById(id)) {
             throw new RuntimeException("Product not found id: " + id);
         }
@@ -68,8 +81,16 @@ public class ProductServiceImpl implements ProductService {
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
-                .description(product.getDescription())
                 .price(product.getPrice())
+                .isVisible(product.getIsVisible())
+                .quantity(product.getQuantity())
+                .lowStockThreshold(product.getLowStockThreshold())
+                .imageUrl(product.getImageUrl())
+                .shortDescription(product.getShortDescription())
+                .longDescription(product.getLongDescription())
+                .categoryId(product.getCategoryId())
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
                 .build();
     }
 }
