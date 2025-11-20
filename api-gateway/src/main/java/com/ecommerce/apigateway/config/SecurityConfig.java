@@ -47,6 +47,10 @@ public class SecurityConfig {
                         // REVIEW SERVICE (Viết đánh giá)
                         .pathMatchers(HttpMethod.POST, "/api/reviews").authenticated()
 
+                        // INVENTORY SERVICE
+                        .pathMatchers(HttpMethod.POST, "/api/inventory/add").hasRole("ADMIN") // Chỉ Admin được nhập kho
+                        .pathMatchers("/api/inventory/**").authenticated() // Các cái khác cần login
+
                         // --- 4. CHỐT CHẶN CUỐI CÙNG ---
                         // Bất kỳ đường dẫn nào chưa khai báo ở trên đều bắt buộc phải đăng nhập
                         .anyExchange().authenticated()
