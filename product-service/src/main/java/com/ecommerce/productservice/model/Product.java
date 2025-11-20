@@ -30,7 +30,7 @@ public class Product {
     @Column(columnDefinition = "boolean default true")
     private Boolean isVisible;
 
-    private Integer quantity; // Lưu ý: Trong microservices chuẩn, cái này nên ở Inventory, nhưng để giống FE tôi để tạm ở đây.
+
     private Integer lowStockThreshold;
 
     private String imageUrl;

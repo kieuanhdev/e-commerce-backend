@@ -6,7 +6,7 @@ import com.ecommerce.productservice.dto.ProductResponse;
 import java.util.List;
 
 public interface ProductService {
-    void createProduct(ProductRequest productRequest);
+    ProductResponse createProduct(ProductRequest productRequest);
     List<ProductResponse> getAllProducts();
     ProductResponse getProductById(String id); // ID là String
     ProductResponse updateProduct(String id, ProductRequest productRequest); // ID là String

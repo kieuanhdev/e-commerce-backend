@@ -16,7 +16,6 @@ public class ProductResponse {
     private String name;
     private BigDecimal price;
     private Boolean isVisible;
-    private Integer quantity;
     private Integer lowStockThreshold;
     private String imageUrl;
     private String shortDescription;

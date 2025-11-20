@@ -18,12 +18,11 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
 
     @Override
-    public void createProduct(ProductRequest productRequest) {
+    public ProductResponse createProduct(ProductRequest productRequest) {
         Product product = Product.builder()
                 .name(productRequest.getName())
                 .price(productRequest.getPrice())
                 .isVisible(productRequest.getIsVisible() != null ? productRequest.getIsVisible() : true)
-                .quantity(productRequest.getQuantity() != null ? productRequest.getQuantity() : 0)
                 .lowStockThreshold(productRequest.getLowStockThreshold() != null ? productRequest.getLowStockThreshold() : 10)
                 .imageUrl(productRequest.getImageUrl())
                 .shortDescription(productRequest.getShortDescription())
@@ -33,6 +32,8 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.save(product);
         log.info("Product {} is saved", product.getId());
+        // 👇 ĐÃ SỬA: Trả về dữ liệu ProductResponse thay vì void (không trả gì)
+        return mapToProductResponse(product);
     }
 
     @Override
@@ -58,7 +59,6 @@ public class ProductServiceImpl implements ProductService {
         product.setName(request.getName());
         product.setPrice(request.getPrice());
         product.setIsVisible(request.getIsVisible());
-        product.setQuantity(request.getQuantity());
         product.setLowStockThreshold(request.getLowStockThreshold());
         product.setImageUrl(request.getImageUrl());
         product.setShortDescription(request.getShortDescription());
@@ -83,7 +83,6 @@ public class ProductServiceImpl implements ProductService {
                 .name(product.getName())
                 .price(product.getPrice())
                 .isVisible(product.getIsVisible())
-                .quantity(product.getQuantity())
                 .lowStockThreshold(product.getLowStockThreshold())
                 .imageUrl(product.getImageUrl())
                 .shortDescription(product.getShortDescription())

@@ -24,8 +24,6 @@ public class ProductRequest {
     // Không cần @NotNull vì boolean có thể null (sẽ handle default ở service)
     private Boolean isVisible;
 
-    @Min(value = 0, message = "Số lượng tồn kho không được âm")
-    private Integer quantity;
 
     @Min(value = 0, message = "Ngưỡng báo động kho không được âm")
     private Integer lowStockThreshold;

@@ -23,9 +23,12 @@ public class ProductController {
     // 1. Tạo mới
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseData<String> createProduct(@RequestBody @Valid ProductRequest productRequest) {
-        productService.createProduct(productRequest);
-        return new ResponseData<>(HttpStatus.CREATED.value(), "Thêm sản phẩm thành công", null);
+    // Đổi từ ResponseData<String> thành ResponseData<ProductResponse>
+    public ResponseData<ProductResponse> createProduct(@RequestBody @Valid ProductRequest productRequest) {
+        // Sửa logic service để trả về ProductResponse thay vì void
+        ProductResponse newProduct = productService.createProduct(productRequest);
+
+        return new ResponseData<>(HttpStatus.CREATED.value(), "Thêm sản phẩm thành công", newProduct);
     }
 
     // 2. Lấy danh sách
