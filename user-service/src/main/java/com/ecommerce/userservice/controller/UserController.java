@@ -1,7 +1,9 @@
 package com.ecommerce.userservice.controller;
 
+import com.ecommerce.commonlibrary.response.ResponseData;
 import com.ecommerce.userservice.dto.UserRegistrationRequest;
 import com.ecommerce.userservice.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
@@ -16,23 +18,33 @@ public class UserController {
 
     private final UserService userService;
 
-    // Chỉ Admin được gọi
+    // 1. API Admin xem danh sách
     @GetMapping
-    public List<UserRepresentation> findAllUsers() {
-        return userService.findAllUsers();
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseData<List<UserRepresentation>> findAllUsers() {
+        List<UserRepresentation> users = userService.findAllUsers();
+        return new ResponseData<>(HttpStatus.OK.value(), "Lấy danh sách thành công", users);
     }
 
-    // Ai cũng gọi được
+    // 2. API Đăng ký (Thêm @Valid)
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public String register(@RequestBody UserRegistrationRequest request) {
-        return userService.createUser(request);
+    public ResponseData<String> register(@RequestBody @Valid UserRegistrationRequest request) {
+        // Service trả về String (thông báo thành công) hoặc ném Exception
+        userService.createUser(request);
+        return new ResponseData<>(HttpStatus.CREATED.value(), "Đăng ký tài khoản thành công", null);
     }
 
-    // Ai cũng gọi được
+    // 3. API Quên mật khẩu
     @PostMapping("/forgot-password")
-    public String forgotPassword(@RequestParam String email) {
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseData<String> forgotPassword(@RequestParam String email) {
+        // Nếu email rỗng, lỗi sẽ được bắt thủ công hoặc dùng @NotBlank nếu chuyển sang DTO
+        if (email == null || email.trim().isEmpty()) {
+            throw new RuntimeException("Email không được để trống");
+        }
+
         userService.forgotPassword(email);
-        return "Vui lòng kiểm tra Email để đặt lại mật khẩu!";
+        return new ResponseData<>(HttpStatus.OK.value(), "Vui lòng kiểm tra Email để đặt lại mật khẩu!", null);
     }
 }
