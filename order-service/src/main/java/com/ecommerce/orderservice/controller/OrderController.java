@@ -1,8 +1,10 @@
 package com.ecommerce.orderservice.controller;
 
+import com.ecommerce.commonlibrary.response.ResponseData; // Import common
 import com.ecommerce.orderservice.dto.OrderRequest;
 import com.ecommerce.orderservice.model.Order;
 import com.ecommerce.orderservice.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,33 +18,36 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    // 1. Đặt hàng (Lưu userId ngầm)
+    // 1. Đặt hàng (User)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public String placeOrder(@RequestBody OrderRequest orderRequest) {
-        return orderService.placeOrder(orderRequest);
+    public ResponseData<String> placeOrder(@RequestBody @Valid OrderRequest orderRequest) {
+        String result = orderService.placeOrder(orderRequest);
+        return new ResponseData<>(HttpStatus.CREATED.value(), result, null);
     }
 
-    // 2. User xem lịch sử đơn hàng của chính mình
+    // 2. Xem lịch sử đơn hàng của chính mình (User)
     @GetMapping("/my-orders")
     @ResponseStatus(HttpStatus.OK)
-    public List<Order> getMyOrders() {
-        return orderService.getMyOrders();
+    public ResponseData<List<Order>> getMyOrders() {
+        List<Order> orders = orderService.getMyOrders();
+        return new ResponseData<>(HttpStatus.OK.value(), "Lấy lịch sử đơn hàng thành công", orders);
     }
 
-    // 3. Admin xem tất cả đơn hàng
+    // 3. Xem tất cả đơn hàng (Admin)
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
-    public List<Order> getAllOrders() {
-        return orderService.getAllOrders();
+    public ResponseData<List<Order>> getAllOrders() {
+        List<Order> orders = orderService.getAllOrders();
+        return new ResponseData<>(HttpStatus.OK.value(), "Lấy danh sách toàn bộ đơn hàng thành công", orders);
     }
 
-    // 👇 THÊM API NÀY: Để Review Service gọi sang hỏi
+    // 4. API Nội bộ (Cho Review Service gọi)
+    // Lưu ý: API nội bộ thì trả về boolean thô (raw) để Feign bên kia dễ hứng, không cần bọc ResponseData
     @GetMapping("/has-purchased")
     @ResponseStatus(HttpStatus.OK)
     public boolean hasPurchased(@RequestParam("userId") String userId,
                                 @RequestParam("skuCode") String skuCode) {
-        // Gọi qua Service chứ không gọi trực tiếp Repository
         return orderService.hasPurchased(userId, skuCode);
     }
 }
