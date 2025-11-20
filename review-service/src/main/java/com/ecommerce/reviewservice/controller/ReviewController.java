@@ -1,8 +1,10 @@
 package com.ecommerce.reviewservice.controller;
 
+import com.ecommerce.commonlibrary.response.ResponseData;
 import com.ecommerce.reviewservice.dto.ReviewRequest;
 import com.ecommerce.reviewservice.model.Review;
 import com.ecommerce.reviewservice.service.ReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,18 +18,17 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    // API Đánh giá (Cần đăng nhập)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public String addReview(@RequestBody ReviewRequest request) {
+    public ResponseData<String> addReview(@RequestBody @Valid ReviewRequest request) {
         reviewService.addReview(request);
-        return "Đánh giá thành công!";
+        return new ResponseData<>(HttpStatus.CREATED.value(), "Đánh giá thành công!", null);
     }
 
-    // API Xem đánh giá (Ai cũng xem được)
     @GetMapping("/{skuCode}")
     @ResponseStatus(HttpStatus.OK)
-    public List<Review> getReviews(@PathVariable String skuCode) {
-        return reviewService.getReviewsByProduct(skuCode);
+    public ResponseData<List<Review>> getReviews(@PathVariable String skuCode) {
+        List<Review> reviews = reviewService.getReviewsByProduct(skuCode);
+        return new ResponseData<>(HttpStatus.OK.value(), "Lấy danh sách đánh giá thành công", reviews);
     }
 }

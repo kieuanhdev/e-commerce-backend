@@ -1,8 +1,10 @@
 package com.ecommerce.cartservice.controller;
 
+import com.ecommerce.commonlibrary.response.ResponseData;
 import com.ecommerce.cartservice.dto.CartItemDto;
 import com.ecommerce.cartservice.model.Cart;
 import com.ecommerce.cartservice.service.CartService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,28 +18,29 @@ public class CartController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public String addToCart(@RequestBody CartItemDto cartItemDto) {
+    public ResponseData<String> addToCart(@RequestBody @Valid CartItemDto cartItemDto) {
         cartService.addToCart(cartItemDto);
-        return "Đã thêm vào giỏ!";
+        return new ResponseData<>(HttpStatus.CREATED.value(), "Đã thêm vào giỏ!", null);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Cart getMyCart() {
-        return cartService.getMyCart();
+    public ResponseData<Cart> getMyCart() {
+        Cart cart = cartService.getMyCart();
+        return new ResponseData<>(HttpStatus.OK.value(), "Lấy giỏ hàng thành công", cart);
     }
 
     @DeleteMapping("/{skuCode}")
     @ResponseStatus(HttpStatus.OK)
-    public String removeFromCart(@PathVariable String skuCode) {
+    public ResponseData<String> removeFromCart(@PathVariable String skuCode) {
         cartService.removeFromCart(skuCode);
-        return "Đã xóa sản phẩm khỏi giỏ!";
+        return new ResponseData<>(HttpStatus.OK.value(), "Đã xóa sản phẩm khỏi giỏ!", null);
     }
 
     @DeleteMapping("/clear")
     @ResponseStatus(HttpStatus.OK)
-    public String clearCart() {
+    public ResponseData<String> clearCart() {
         cartService.clearCart();
-        return "Đã làm sạch giỏ hàng!";
+        return new ResponseData<>(HttpStatus.OK.value(), "Đã làm sạch giỏ hàng!", null);
     }
 }
